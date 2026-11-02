@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: stg_transactions
+    description: Транзакции с приведёнными типами, очищенными строками и временными признаками.
+    columns:
+      - name: transaction_time
+        description: Время транзакции в часовом поясе исходной таблицы.
+        tests: [not_null]
+      - name: merchant
+        description: Название мерчанта без пробелов по краям.
+        tests: [not_null]
+      - name: category
+        description: Категория транзакции в нижнем регистре.
+        tests: [not_null]
+      - name: amount
+        description: Сумма транзакции типа Float64.
+        tests: [not_null]
+      - name: first_name
+        description: Имя клиента в нижнем регистре.
+        tests: [not_null]
+      - name: last_name
+        description: Фамилия клиента в нижнем регистре.
+        tests: [not_null]
+      - name: gender
+        description: Пол клиента, M или F.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [M, F]
+      - name: state
+        description: Код штата США в верхнем регистре.
+        tests: [not_null]
+      - name: is_fraud
+        description: Признак мошенничества, 0 или 1.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
+      - name: transaction_date
+        description: Дата транзакции.
+        tests: [not_null]
+      - name: day_of_week
+        description: День недели от 1 (понедельник) до 7 (воскресенье).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7]
+                quote: false
+      - name: transaction_hour
+        description: Час транзакции от 0 до 23.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 23
+      - name: amount_bucket
+        description: SMALL < 100, MEDIUM >= 100 и < 1000, LARGE >= 1000.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [SMALL, MEDIUM, LARGE]

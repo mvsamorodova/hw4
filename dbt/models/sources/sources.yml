@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: transactions_db
+    description: Представление над homework.transactions из hw2, созданное макросом prepare_source.
+    tables:
+      - name: transactions
+        description: Транзакции клиентов с признаком мошенничества target.
+        columns:
+          - name: transaction_time
+            description: Дата и время транзакции.
+          - name: amount
+            description: Сумма транзакции.
+          - name: target
+            description: 1 — мошенничество, 0 — обычная транзакция.

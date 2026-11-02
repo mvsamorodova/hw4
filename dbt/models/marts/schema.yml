@@ -1,0 +1,116 @@
+version: 2
+
+models:
+  - name: mart_daily_state_metrics
+    description: Дневная статистика транзакций по штатам.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [transaction_date, state]
+    columns:
+      - name: transaction_date
+        description: Дата транзакций.
+        tests: [not_null]
+      - name: state
+        description: Код штата США.
+        tests: [not_null]
+      - name: transaction_count
+        description: Количество транзакций.
+      - name: total_amount
+        description: Общая сумма транзакций.
+      - name: avg_amount
+        description: Средний чек.
+      - name: p95_amount
+        description: Точный 95-й перцентиль суммы транзакции.
+      - name: large_transaction_share
+        description: Доля транзакций с суммой >= 1000, в процентах.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+
+  - name: mart_fraud_by_category
+    description: Частота и суммы мошеннических транзакций по категориям.
+    columns:
+      - name: category
+        description: Категория транзакций.
+        tests: [not_null, unique]
+      - name: transaction_count
+        description: Количество всех транзакций категории.
+      - name: fraud_count
+        description: Количество мошеннических транзакций.
+      - name: fraud_rate
+        description: Доля мошеннических транзакций в процентах.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: total_amount
+        description: Общая сумма транзакций категории.
+      - name: fraud_amount
+        description: Сумма мошеннических транзакций.
+
+  - name: mart_fraud_by_state
+    description: Географическое распределение мошенничества по штатам США.
+    columns:
+      - name: state
+        description: Код штата США.
+        tests: [not_null, unique]
+      - name: transaction_count
+        description: Количество всех транзакций штата.
+      - name: fraud_count
+        description: Количество мошеннических транзакций.
+      - name: fraud_rate
+        description: Доля мошеннических транзакций в процентах.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: unique_customers
+        description: Число уникальных пар имя и фамилия; однофамильцы с одинаковым именем неразличимы.
+      - name: unique_merchants
+        description: Число уникальных мерчантов.
+      - name: total_amount
+        description: Общая сумма транзакций штата.
+      - name: fraud_amount
+        description: Сумма мошеннических транзакций штата.
+
+  - name: mart_hourly_fraud_pattern
+    description: Частота мошенничества по дням недели и часам.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [day_of_week, transaction_hour]
+    columns:
+      - name: day_of_week
+        description: День недели от 1 (понедельник) до 7 (воскресенье).
+        tests: [not_null]
+      - name: transaction_hour
+        description: Час транзакции от 0 до 23.
+        tests: [not_null]
+      - name: transaction_count
+        description: Количество транзакций во временном окне.
+      - name: fraud_count
+        description: Количество мошеннических транзакций во временном окне.
+      - name: fraud_rate
+        description: Доля мошеннических транзакций в процентах.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: is_high_risk
+        description: 1, если fraud_rate окна выше общего fraud_rate, иначе 0.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+                quote: false
